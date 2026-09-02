@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  labels:
+    app: marsmallows
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: marsmallows
+  template:
+    metadata:
+      labels:
+        app: marsmallows
+    spec:
+      containers:
+      - name: api
+        image: mm_auth:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
+        command: ["bundle", "exec", "rails", "server"]
+        env:
+        - name: MYSQL_HOST
+          valueFrom:
+            secretKeyRef:
+              name: auth-env
+              key: MYSQL_HOST 
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: auth-env
+              key: MYSQL_USER
+        - name: MYSQL_PASS
+          valueFrom:
+            secretKeyRef:
+              name: auth-env
+              key: MYSQL_PASS

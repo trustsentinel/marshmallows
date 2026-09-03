@@ -116,7 +116,7 @@ func wsChannelHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	channelID := params["channel"]
 
-	//@todo replace with a real source using X-Forward-IP ?¿
+	//@todo replace with a real source using X-Forward-IP ?
 	source := "127.0.0.1"
 
 	// check upgrader

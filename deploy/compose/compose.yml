@@ -1,0 +1,72 @@
+name: marshmallows
+
+# A full, functional marshmallows platform on your machine:
+#   web (dashboard) -> broker -> agent (a real device shell), plus mm-auth.
+#
+#   docker compose -f deploy/compose/compose.yml up --build
+#   open http://localhost:8080
+#
+# The dashboard lands on the Overview (login is bypassed for the demo via
+# VITE_DEMO_AUTH), shows the live agent device, and "Connect" opens a real
+# shell into the agent container over the Noise-brokered channel.
+
+services:
+  auth:
+    build: { context: ../.., dockerfile: deploy/compose/Dockerfile.services }
+    command: ["mm-auth", "-addr", ":8090", "-rp-id", "localhost", "-rp-origins", "http://localhost:8080", "-store", "/data/auth.json"]
+    ports: ["8090:8090"]
+    volumes: ["authdata:/data"]
+    networks: [mm]
+
+  broker:
+    build: { context: ../.., dockerfile: deploy/compose/Dockerfile.services }
+    # Dev mode (no -auth-url): accepts the agent's demo token and open browser access.
+    command: ["mm-broker", "-addr", ":8081", "-cloud", "valc31", "-identity", "/shared/broker.key", "-pubkey-out", "/shared/broker.pub", "-cors-origins", "http://localhost:8080"]
+    ports: ["8081:8081"]
+    volumes: ["shared:/shared"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [mm]
+
+  agent:
+    build: { context: ../.., dockerfile: deploy/compose/Dockerfile.services }
+    # Wait for the broker to publish its public key, then pin it and enroll.
+    command:
+      - sh
+      - -c
+      - |
+        until [ -f /shared/broker.pub ]; do sleep 0.3; done
+        exec mm-agent -broker ws://broker:8081 -broker-key "$$(cat /shared/broker.pub)" \
+          -cloud valc31 -device valc31.pi01 -name "Greenhouse Pi" -os "Alpine (container)" \
+          -token demo -shell /bin/sh -identity /data/agent.key
+    depends_on:
+      broker: { condition: service_healthy }
+    volumes: ["shared:/shared", "agentdata:/data"]
+    restart: on-failure
+    networks: [mm]
+
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/compose/Dockerfile.web
+      args:
+        VITE_DEMO_AUTH: "1"
+        VITE_DEMO_DATA: "0"
+        VITE_BROKER_BASE: "http://localhost:8081"
+        VITE_BROKER_WS: "ws://localhost:8081"
+        VITE_AUTH_BASE: "http://localhost:8090"
+        VITE_CLOUD_ID: "valc31"
+    ports: ["8080:80"]
+    depends_on: [broker]
+    networks: [mm]
+
+networks:
+  mm: { driver: bridge }
+
+volumes:
+  shared: {}
+  authdata: {}
+  agentdata: {}

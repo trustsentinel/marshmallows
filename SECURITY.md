@@ -1,21 +1,36 @@
 # Security Policy
 
-## Supported Versions
+**TrustSentinel** builds security tooling, so vulnerabilities in our own code
+matter to us. Thank you for helping keep `marshmallows` and its users safe.
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+## Reporting a vulnerability
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+Please report security issues **privately** — do not open a public issue or PR.
 
-## Reporting a Vulnerability
+- **Preferred:** GitHub private reporting — the **"Report a vulnerability"** button
+  on this repository's **Security** tab
+  (<https://github.com/trustsentinel/marshmallows/security/advisories/new>).
+- **Alternatively:** email **security@trustsentinel.eu**.
 
-Use this section to tell people how to report a vulnerability.
+Please include the affected version or commit, a description and impact, and
+step-by-step reproduction (a proof of concept if you have one).
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+## What to expect
+
+- **Acknowledgement** within **3 business days**.
+- An initial assessment and severity triage within **10 business days**.
+- Progress updates through to a fix, and — with your consent — credit in the
+  advisory when it ships.
+
+## Scope & safe harbor
+
+This policy covers the code in this repository. Please act in good faith: avoid
+privacy violations, data destruction, and service disruption while researching,
+and allow reasonable time to remediate before public disclosure. We will not
+pursue legal action against researchers who follow this policy.
+
+## Supported versions
+
+`marshmallows` ships security fixes on the latest `main` and the most recent
+tagged release. Pin a tag for reproducible builds and upgrade promptly when a
+security release is published.

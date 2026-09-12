@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: build + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - name: gofmt
+        run: |
+          unformatted="$(gofmt -l cmd internal)"
+          if [ -n "$unformatted" ]; then echo "gofmt needed:"; echo "$unformatted"; exit 1; fi
+      - run: go vet ./...
+      - run: go build ./...
+      - run: go test -race ./...
+
+  security:
+    name: govulncheck + gosec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - name: govulncheck
+        env:
+          GOTOOLCHAIN: auto # let govulncheck@latest pull the toolchain it needs
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          "$(go env GOPATH)/bin/govulncheck" ./...
+      - name: gosec
+        continue-on-error: true # advisory for now
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          "$(go env GOPATH)/bin/gosec" ./...
+
+  web:
+    name: web build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - working-directory: web
+        run: npm ci
+      - working-directory: web
+        run: npm run build
+
+  e2e:
+    name: docker compose e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build + start the stack
+        run: docker compose -f deploy/compose/compose.yml up -d --build
+      - name: wait for the agent to register over Noise
+        run: |
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:8081/devices.json | grep -q pi01; then
+              echo "device registered:"; curl -s http://localhost:8081/devices.json; exit 0
+            fi
+            sleep 3
+          done
+          echo "agent never registered"; docker compose -f deploy/compose/compose.yml logs; exit 1
+      - name: cleanup
+        if: always()
+        run: docker compose -f deploy/compose/compose.yml down -v

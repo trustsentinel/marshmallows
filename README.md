@@ -54,10 +54,19 @@ choose.
 </p>
 
 ## Components
-- **[broker/](broker)** — the coordinator: registers devices, verifies permissions, and brokers end-to-end links between machines.
-- **[agent/](agent)** — the device-side agent (Go, Noise Protocol transport).
-- **[web/](web)** — the React dashboard (browser terminal + device management).
-- **[auth/](auth)** — the authentication API (2FA/U2F identity).
+One Go module plus the dashboard (the 2019 prototype is preserved under `_legacy/`):
+- **[`cmd/mm-broker`](cmd/mm-broker)** — the coordinator: agents attach over Noise, a registry drives `/devices.json`, and browser terminals are bridged to agents.
+- **[`cmd/mm-agent`](cmd/mm-agent)** — the device-side agent (Go, Noise transport, PTY shell): pins the broker, enrolls with a one-time token, opens no inbound port.
+- **[`cmd/mm-auth`](cmd/mm-auth)** — the identity service: WebAuthn (security keys / U2F) + TOTP.
+- **[`web/`](web)** — the React dashboard: device management + a browser terminal.
+
+## Run the demo
+The whole platform on your machine — dashboard, broker, a live device, and identity:
+```bash
+docker compose -f deploy/compose/compose.yml up --build
+```
+Then open **http://localhost:8080**, pick the device, and **Connect** for a real
+brokered shell. See **[deploy/compose/](deploy/compose)**.
 
 ## Objectives
 1. **Manage devices across separate deployments** without them having to be
@@ -100,18 +109,30 @@ End-to-end secure channel and agent flow:
 </p>
 
 ## Tech stack
-- **Back end** — Go and Ruby
-- **Data** — Redis & MySQL
-- **Web framework** — Rails (auth API) + React (front end)
-- **2FA** — Google Authenticator (TOTP)
-- **U2F** — Yubico / FIDO keys
+- **Back end** — Go, one module (`mm-broker`, `mm-agent`, `mm-auth`)
+- **Transport** — Noise Protocol (Curve25519 · ChaCha20-Poly1305 · BLAKE2b)
+- **Front end** — React 18 + Vite + xterm.js
+- **Identity** — WebAuthn (security keys / U2F) + TOTP
+- **Deploy** — Docker Compose (single-command demo)
 
 ## Design & vision
-See **[docs/iot-mesh-architecture.md](docs/iot-mesh-architecture.md)** — how
-marshmallows grows into a Tailscale-class mesh purpose-built for constrained/edge
-devices. It sits alongside the wider TrustSentinel estate: it seeds the Go Noise
-agent used by [stk](https://github.com/trustsentinel/stk), and its mesh model
-feeds the [netso](https://github.com/trustsentinel/netso) connectivity platform.
+See the **[whitepaper](docs/whitepaper.md)** — architecture, the security model,
+identity, and how marshmallows grows into a Tailscale-class mesh purpose-built
+for constrained/edge devices. It sits alongside the wider TrustSentinel estate:
+it seeds the Go Noise agent used by [stk](https://github.com/trustsentinel/stk),
+and its mesh model feeds the [netso](https://github.com/trustsentinel/netso)
+connectivity platform.
+
+## TrustSentinel
+Part of [TrustSentinel](https://trustsentinel.eu) — secure connectivity and
+network-intelligence tooling by Álvaro López.
+
+- **[netso](https://github.com/trustsentinel/netso)** — secure-networking platform (SSI + end-to-end encryption)
+- **[stk](https://github.com/trustsentinel/stk)** — browser-based remote shell broker
+- **[stuk](https://github.com/trustsentinel/stuk)** — SSH access gating (port-knock + MFA)
+- **[marshmallows](https://github.com/trustsentinel/marshmallows)** — secure mesh for IoT  ·  _this repo_
+- **[argos](https://github.com/trustsentinel/argos)** — P2P blockchain network scanning
+- **[eth-rlp](https://github.com/trustsentinel/eth-rlp)** — RLP codec for Ethereum discv4
 
 ## License
 MIT — see [LICENSE.md](LICENSE.md).

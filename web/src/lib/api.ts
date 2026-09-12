@@ -1,14 +1,19 @@
 // API client for the marshmallows dashboard. Talks to mm-auth (identity) and
-// the broker (device graph + terminal WebSockets). Endpoints are env-driven;
-// when VITE_DEMO=1 (the default until the backends are wired) it serves local
-// demo data so the UI is fully explorable offline.
+// the broker (device graph + terminal WebSockets). Endpoints are env-driven.
+//
+// Two independent demo switches:
+//   VITE_DEMO_AUTH=1  skip the WebAuthn login (land straight on the dashboard)
+//   VITE_DEMO_DATA=1  serve canned devices + a local fake shell (fully offline)
+// The Compose demo sets DEMO_AUTH=1 (frictionless) with DEMO_DATA=0 so the
+// device list and terminal are the REAL broker + agent.
 import { create, get } from '@github/webauthn-json'
 
 const AUTH = import.meta.env.VITE_AUTH_BASE ?? 'http://localhost:8090'
 const BROKER = import.meta.env.VITE_BROKER_BASE ?? 'http://localhost:8081'
 const BROKER_WS = import.meta.env.VITE_BROKER_WS ?? 'ws://localhost:8081'
 export const CLOUD_ID = import.meta.env.VITE_CLOUD_ID ?? 'valc31'
-export const DEMO = (import.meta.env.VITE_DEMO ?? '1') === '1'
+export const DEMO_AUTH = (import.meta.env.VITE_DEMO_AUTH ?? '0') === '1'
+export const DEMO_DATA = (import.meta.env.VITE_DEMO_DATA ?? '0') === '1'
 
 export type DeviceStatus = 'online' | 'idle' | 'offline'
 export type Device = {
@@ -31,7 +36,7 @@ export const demoDevices: Device[] = [
 ]
 
 export async function getSession(): Promise<Session> {
-  if (DEMO) return { username: 'alvaro', totp: true }
+  if (DEMO_AUTH) return { username: "alvaro", totp: false }
   try {
     const r = await fetch(`${AUTH}/api/session`, { credentials: 'include' })
     return r.ok ? await r.json() : null
@@ -41,7 +46,7 @@ export async function getSession(): Promise<Session> {
 }
 
 export async function logout(): Promise<void> {
-  if (DEMO) return
+  if (DEMO_AUTH) return
   try {
     await fetch(`${AUTH}/api/logout`, { method: 'POST', credentials: 'include' })
   } catch {
@@ -50,26 +55,28 @@ export async function logout(): Promise<void> {
 }
 
 export async function listDevices(): Promise<Device[]> {
-  if (DEMO) return demoDevices
+  if (DEMO_DATA) return demoDevices
   try {
     const r = await fetch(`${BROKER}/devices.json`)
     const g = await r.json()
-    return (g.nodes ?? []).map((n: any): Device => ({
-      id: n.id,
-      name: n.id,
-      kind: n.group === 1 ? 'gateway' : 'device',
-      status: 'online',
-      addr: n.addr ?? '—',
-      os: n.os ?? 'unknown',
-      lastSeen: 'now',
-    }))
+    return (g.nodes ?? [])
+      .filter((n: any) => n.group !== 1) // the group-1 node is the cloud center, not a device
+      .map((n: any): Device => ({
+        id: n.id,
+        name: n.name || n.id,
+        kind: 'device',
+        status: 'online',
+        addr: n.addr || '—',
+        os: n.os || 'unknown',
+        lastSeen: 'now',
+      }))
   } catch {
     return demoDevices
   }
 }
 
 export async function createAgentToken(): Promise<string> {
-  if (DEMO) return 'mm_' + crypto.getRandomValues(new Uint32Array(4)).join('').slice(0, 32)
+  if (DEMO_DATA) return "mm_" + crypto.getRandomValues(new Uint32Array(4)).join('').slice(0, 32)
   const r = await fetch(`${AUTH}/api/agent-tokens`, { method: 'POST', credentials: 'include' })
   return (await r.json()).token
 }
@@ -106,7 +113,7 @@ export async function registerWebAuthn(username: string, invite: string): Promis
 }
 
 export async function verifyTotp(code: string): Promise<boolean> {
-  if (DEMO) return code.length === 6
+  if (DEMO_AUTH) return code.length === 6
   const r = await fetch(`${AUTH}/api/totp/verify`, {
     method: 'POST', credentials: 'include',
     headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }),
@@ -115,5 +122,5 @@ export async function verifyTotp(code: string): Promise<boolean> {
 }
 
 export function terminalControlURL(deviceId: string): string {
-  return `${BROKER_WS}/open/${encodeURIComponent(deviceId)}`
+  return `${BROKER_WS}/connect/${encodeURIComponent(deviceId)}`
 }

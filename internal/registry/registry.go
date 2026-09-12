@@ -66,9 +66,11 @@ func (r *Registry) Graph() map[string]any {
 	defer r.mu.Unlock()
 	nodes := []map[string]any{{"id": r.cloud, "group": 1}}
 	links := []map[string]any{}
-	for id := range r.devices {
-		nodes = append(nodes, map[string]any{"id": id, "group": 2})
-		links = append(links, map[string]any{"source": r.cloud, "target": id, "value": 1})
+	for _, d := range r.devices {
+		nodes = append(nodes, map[string]any{
+			"id": d.ID, "group": 2, "name": d.Name, "os": d.OS, "addr": d.Addr,
+		})
+		links = append(links, map[string]any{"source": r.cloud, "target": d.ID, "value": 1})
 	}
 	return map[string]any{"nodes": nodes, "links": links}
 }

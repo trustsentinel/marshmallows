@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { loginWebAuthn, DEMO } from '../lib/api'
+import { loginWebAuthn, DEMO_AUTH } from '../lib/api'
 
 export default function Login({ onDone }: { onDone: () => void }) {
   const [username, setUsername] = useState('alvaro')
@@ -11,7 +11,7 @@ export default function Login({ onDone }: { onDone: () => void }) {
     setErr('')
     setBusy(true)
     try {
-      if (DEMO) {
+      if (DEMO_AUTH) {
         onDone()
         return
       }

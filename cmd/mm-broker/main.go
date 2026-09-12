@@ -21,6 +21,7 @@ func main() {
 	authURL := flag.String("auth-url", os.Getenv("MM_BROKER_AUTH_URL"), "mm-auth base URL (empty = dev, accept any token)")
 	webdir := flag.String("webdir", os.Getenv("MM_BROKER_WEBDIR"), "static dashboard directory to serve (optional)")
 	identity := flag.String("identity", envOr("MM_BROKER_IDENTITY", "data/broker.key"), "broker Noise identity file")
+	pubkeyOut := flag.String("pubkey-out", os.Getenv("MM_BROKER_PUBKEY_OUT"), "write the broker's base64 public key to this file (for agents to pin)")
 	origins := flag.String("cors-origins", envOr("MM_BROKER_CORS", "http://localhost:8080"), "comma-separated allowed browser origins")
 	flag.Parse()
 
@@ -28,7 +29,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("identity: %v", err)
 	}
-	log.Printf("broker static key (agents pin this): %s", secure.EncodePublic(kp.Public))
+	pub := secure.EncodePublic(kp.Public)
+	log.Printf("broker static key (agents pin this): %s", pub)
+	if *pubkeyOut != "" {
+		if err := os.WriteFile(*pubkeyOut, []byte(pub+"\n"), 0o644); err != nil {
+			log.Fatalf("pubkey-out: %v", err)
+		}
+	}
 
 	b := broker.New(broker.Config{
 		Static: kp, Cloud: *cloud, AuthURL: *authURL, WebDir: *webdir, CORSOrigins: splitCSV(*origins),

@@ -10,6 +10,13 @@
   <code>Status: Active</code> · <code>Go · React · Noise Protocol</code> · part of <a href="https://trustsentinel.eu">TrustSentinel</a>
 </p>
 
+<p align="center">
+  <a href="https://www.incibe.es/"><img src="https://img.shields.io/badge/INCIBE-National_Cybersecurity_Competition_2019-a67c00?style=for-the-badge&labelColor=1f1b2e" alt="INCIBE National Cybersecurity Competition 2019 — award"></a>
+</p>
+<p align="center">
+  <sub>🏆 Recognized at the <b>INCIBE National Cybersecurity Competition 2019</b> — a lightweight-cryptography secure-mesh architecture for IoT.</sub>
+</p>
+
 <br/>
 
 <p align="center">
@@ -105,10 +112,6 @@ marshmallows grows into a Tailscale-class mesh purpose-built for constrained/edg
 devices. It sits alongside the wider TrustSentinel estate: it seeds the Go Noise
 agent used by [stk](https://github.com/trustsentinel/stk), and its mesh model
 feeds the [netso](https://github.com/trustsentinel/netso) connectivity platform.
-
-## Recognition
-INCIBE National Cybersecurity Competition **2019** — a lightweight-cryptography
-secure-mesh architecture for IoT.
 
 ## License
 MIT — see [LICENSE.md](LICENSE.md).

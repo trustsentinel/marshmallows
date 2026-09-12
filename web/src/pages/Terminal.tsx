@@ -17,17 +17,17 @@ export default function DeviceTerminal() {
       cursorBlink: true,
       fontFamily: 'IBM Plex Mono, ui-monospace, monospace',
       fontSize: 13,
-      theme: { background: '#0e1214', foreground: '#d7e0dd', cursor: '#34b08f' },
+      theme: { background: '#f4f1fe', foreground: '#2a2440', cursor: '#7c5cff', selectionBackground: '#e2d9ff' },
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
     term.open(ref.current)
     fit.fit()
 
-    term.writeln('\x1b[38;5;36mmarshmallows\x1b[0m — brokered shell (Noise, mutually authenticated)')
+    term.writeln('\x1b[35mmarshmallows\x1b[0m — brokered shell (Noise, mutually authenticated)')
     term.writeln(`connecting to \x1b[1m${dev}\x1b[0m through the hub …`)
-    term.writeln('\x1b[38;5;36m✓ session established\x1b[0m — the hub relayed ciphertext only\r\n')
-    const prompt = `\x1b[38;5;36mpi@${dev.split('.').slice(1).join('.')}\x1b[0m:~$ `
+    term.writeln('\x1b[35m✓ session established\x1b[0m — the hub relayed ciphertext only\r\n')
+    const prompt = `\x1b[35mpi@${dev.split('.').slice(1).join('.')}\x1b[0m:~$ `
     if (DEMO) {
       term.writeln('Linux ' + (dev.split('.').pop() ?? 'node') + ' 6.1.0-rpi8 #1 SMP aarch64 GNU/Linux')
       term.write(prompt)

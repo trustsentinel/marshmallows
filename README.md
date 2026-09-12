@@ -7,8 +7,20 @@
 <p align="center">Secure mesh networking for IoT — an encrypted peer overlay that makes separate private clouds mutually reachable, hardened with lightweight crypto and 2FA/U2F.</p>
 
 <p align="center">
-  <code>Status: Active</code> · <code>Go · Ruby · Noise Protocol</code> · part of <a href="https://trustsentinel.eu">TrustSentinel</a>
+  <code>Status: Active</code> · <code>Go · React · Noise Protocol</code> · part of <a href="https://trustsentinel.eu">TrustSentinel</a>
 </p>
+
+<br/>
+
+<p align="center">
+  <img src="docs/assets/img/dashboard.png" width="880" alt="marshmallows dashboard — mini-cloud topology, device management, and a browser terminal" />
+</p>
+
+<p align="center">
+  <sub><b>The marshmallows dashboard</b> &nbsp;·&nbsp; mini-cloud topology &nbsp;·&nbsp; device management &nbsp;·&nbsp; a Noise-encrypted browser terminal</sub>
+</p>
+
+<br/>
 
 ## Overview
 
@@ -70,13 +82,6 @@ choose.
   avoiding the overhead and heavy keys of TLS.
 - **Human-friendly identifiers** — each element gets an alias scoped by cloud and
   device (`cloud_id.device_id[.service_id]`), e.g. `d1d00a.5g0a` or `d1d00a.5g0a.ssh`.
-
-## Screenshots
-<p align="center">
-  <img width="420" src="docs/assets/img/login.png" alt="login (2FA/U2F)">
-  &nbsp;
-  <img width="420" src="docs/assets/img/register.png" alt="device registration">
-</p>
 
 ## Internals
 End-to-end secure channel and agent flow:
